@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Chip, useTheme, alpha } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Chip, useTheme, alpha, Snackbar, Alert, Box, Button, CircularProgress } from '@mui/material';
 import EntityManagement from '../components/EntityManagement';
+import CustomerService, { CustomerResponse } from '../services/customer.service';
+import { format } from 'date-fns';
 
 interface Customer {
   id: number;
@@ -26,75 +28,138 @@ interface Column {
 
 const Customers: React.FC = () => {
   const theme = useTheme();
-  
-  // Mock data for customers
-  const [customers] = useState<Customer[]>([
-    {
-      id: 1,
-      firstName: 'John',
-      lastName: 'Smith',
-      email: 'john.smith@example.com',
-      phone: '(555) 123-4567',
-      address: '123 Main St',
-      city: 'Springfield',
-      state: 'IL',
-      zipCode: '62701',
-      status: 'active',
-      createdAt: '2023-01-15',
-    },
-    {
-      id: 2,
-      firstName: 'Mary',
-      lastName: 'Johnson',
-      email: 'mary.johnson@example.com',
-      phone: '(555) 234-5678',
-      address: '456 Oak Ave',
-      city: 'Riverdale',
-      state: 'NY',
-      zipCode: '10471',
-      status: 'active',
-      createdAt: '2023-02-20',
-    },
-    {
-      id: 3,
-      firstName: 'Robert',
-      lastName: 'Williams',
-      email: 'robert.williams@example.com',
-      phone: '(555) 345-6789',
-      address: '789 Pine Rd',
-      city: 'Portland',
-      state: 'OR',
-      zipCode: '97205',
-      status: 'inactive',
-      createdAt: '2023-03-10',
-    },
-    {
-      id: 4,
-      firstName: 'Jennifer',
-      lastName: 'Brown',
-      email: 'jennifer.brown@example.com',
-      phone: '(555) 456-7890',
-      address: '321 Maple Dr',
-      city: 'Denver',
-      state: 'CO',
-      zipCode: '80202',
-      status: 'active',
-      createdAt: '2023-04-05',
-    },
-    {
-      id: 5,
-      firstName: 'Michael',
-      lastName: 'Davis',
-      email: 'michael.davis@example.com',
-      phone: '(555) 567-8901',
-      address: '654 Elm St',
-      city: 'Chicago',
-      state: 'IL',
-      zipCode: '60601',
-      status: 'active',
-      createdAt: '2023-05-12',
-    },
-  ]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [usingMockData, setUsingMockData] = useState<boolean>(false);
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'info' | 'warning';
+  }>({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
+
+  // Fetch customers from the database
+  const fetchCustomers = async () => {
+    setIsLoading(true);
+    try {
+      const customersData = await CustomerService.getCustomers();
+      console.log('Raw customer data from API:', customersData);
+      
+      // Map the API response to the Customer interface
+      const formattedCustomers = customersData.map((customer: CustomerResponse) => ({
+        id: customer.customer_id,
+        firstName: customer.first_name,
+        lastName: customer.last_name,
+        email: customer.email || 'N/A',
+        phone: customer.phone || 'N/A',
+        address: customer.address || 'N/A',
+        city: customer.city || 'N/A',
+        state: customer.state || 'N/A',
+        zipCode: customer.country || 'N/A', // Using country as zipCode since zipCode doesn't exist in the API
+        status: 'active', // Assuming all customers are active
+        createdAt: customer.created_at ? format(new Date(customer.created_at), 'yyyy-MM-dd') : 'N/A',
+      }));
+      
+      console.log('Formatted customers for display:', formattedCustomers);
+      setCustomers(formattedCustomers);
+      setUsingMockData(false);
+    } catch (error: any) {
+      console.error('Error fetching customers:', error);
+      
+      // Use mock data as fallback when API fails
+      const mockCustomers = [
+        {
+          id: 1,
+          firstName: 'John',
+          lastName: 'Smith',
+          email: 'john.smith@example.com',
+          phone: '(555) 123-4567',
+          address: '123 Main St',
+          city: 'Springfield',
+          state: 'IL',
+          zipCode: '62701',
+          status: 'active',
+          createdAt: '2023-01-15',
+        },
+        {
+          id: 2,
+          firstName: 'Mary',
+          lastName: 'Johnson',
+          email: 'mary.johnson@example.com',
+          phone: '(555) 234-5678',
+          address: '456 Oak Ave',
+          city: 'Riverdale',
+          state: 'NY',
+          zipCode: '10471',
+          status: 'active',
+          createdAt: '2023-02-20',
+        },
+        {
+          id: 3,
+          firstName: 'Robert',
+          lastName: 'Williams',
+          email: 'robert.williams@example.com',
+          phone: '(555) 345-6789',
+          address: '789 Pine Rd',
+          city: 'Portland',
+          state: 'OR',
+          zipCode: '97205',
+          status: 'inactive',
+          createdAt: '2023-03-10',
+        },
+        {
+          id: 4,
+          firstName: 'Jennifer',
+          lastName: 'Brown',
+          email: 'jennifer.brown@example.com',
+          phone: '(555) 456-7890',
+          address: '321 Maple Dr',
+          city: 'Denver',
+          state: 'CO',
+          zipCode: '80202',
+          status: 'active',
+          createdAt: '2023-04-05',
+        },
+        {
+          id: 5,
+          firstName: 'Michael',
+          lastName: 'Davis',
+          email: 'michael.davis@example.com',
+          phone: '(555) 567-8901',
+          address: '654 Elm St',
+          city: 'Chicago',
+          state: 'IL',
+          zipCode: '60601',
+          status: 'active',
+          createdAt: '2023-05-12',
+        },
+      ];
+      
+      console.log('Using mock customer data:', mockCustomers);
+      setCustomers(mockCustomers);
+      setUsingMockData(true);
+      
+      setSnackbar({
+        open: true,
+        message: `API endpoint not available (${error.message}). Using mock data instead.`,
+        severity: 'warning',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load customers when component mounts
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   const columns: Column[] = [
     { id: 'id', label: 'ID', minWidth: 50 },
@@ -146,34 +211,82 @@ const Customers: React.FC = () => {
   const handleAddCustomer = () => {
     console.log('Add customer');
     // In a real application, this would open a modal or navigate to a form
+    setSnackbar({
+      open: true,
+      message: 'Customer creation form would open here',
+      severity: 'info',
+    });
   };
 
   const handleEditCustomer = (id: number) => {
     console.log('Edit customer with ID:', id);
     // In a real application, this would open a modal or navigate to a form
+    setSnackbar({
+      open: true,
+      message: `Customer edit form for ID ${id} would open here`,
+      severity: 'info',
+    });
   };
 
   const handleDeleteCustomer = (id: number) => {
     console.log('Delete customer with ID:', id);
     // In a real application, this would show a confirmation dialog
+    setSnackbar({
+      open: true,
+      message: `Confirmation dialog for deleting customer ID ${id} would open here`,
+      severity: 'info',
+    });
   };
 
   const handleViewCustomer = (id: number) => {
     console.log('View customer with ID:', id);
     // In a real application, this would navigate to a customer details page
+    setSnackbar({
+      open: true,
+      message: `Details page for customer ID ${id} would open here`,
+      severity: 'info',
+    });
   };
 
   return (
-    <EntityManagement
-      title=""
-      subtitle="Manage customer information and records"
-      columns={columns}
-      data={customers}
-      onAdd={handleAddCustomer}
-      onEdit={handleEditCustomer}
-      onDelete={handleDeleteCustomer}
-      onView={handleViewCustomer}
-    />
+    <>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <Button 
+          variant="outlined" 
+          onClick={fetchCustomers} 
+          disabled={isLoading}
+          startIcon={isLoading ? <CircularProgress size={20} /> : null}
+          color={usingMockData ? "warning" : "primary"}
+        >
+          {isLoading 
+            ? 'Refreshing...' 
+            : usingMockData 
+              ? 'Using Mock Data (Click to Try API Again)' 
+              : 'Refresh Customers'
+          }
+        </Button>
+      </Box>
+      <EntityManagement
+        title=""
+        subtitle="Manage customer information and relationships"
+        columns={columns}
+        data={customers}
+        onAdd={handleAddCustomer}
+        onEdit={handleEditCustomer}
+        onDelete={handleDeleteCustomer}
+        onView={handleViewCustomer}
+      />
+      <Snackbar 
+        open={snackbar.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </>
   );
 };
 

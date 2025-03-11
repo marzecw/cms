@@ -32,8 +32,38 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    return this.generateJwtToken(user);
+  }
+
+  async validateOrCreateGoogleUser(googleUser: any) {
+    // Try to find user by email
+    let user = await this.usersService.findByEmail(googleUser.email);
+    
+    // If user doesn't exist, create a new one
+    if (!user) {
+      user = await this.usersService.createGoogleUser({
+        email: googleUser.email,
+        firstName: googleUser.firstName,
+        lastName: googleUser.lastName,
+        picture: googleUser.picture,
+        googleId: googleUser.id,
+      });
+    }
+    
+    return user;
+  }
+
+  async googleLogin(req) {
+    if (!req.user) {
+      throw new UnauthorizedException('No user from Google');
+    }
+    
+    return this.generateJwtToken(req.user);
+  }
+
+  private generateJwtToken(user: any) {
     const payload = {
-      username: user.username,
+      username: user.username || user.email,
       sub: user.user_id,
       tenantId: user.tenant_id,
       role: user.role,
@@ -43,12 +73,13 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
       user: {
         id: user.user_id,
-        username: user.username,
+        username: user.username || user.email,
         email: user.email,
         firstName: user.first_name,
         lastName: user.last_name,
         role: user.role,
         tenantId: user.tenant_id,
+        picture: user.picture,
       },
     };
   }

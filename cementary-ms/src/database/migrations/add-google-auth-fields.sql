@@ -1,0 +1,7 @@
+-- Add Google authentication fields to users table
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS google_id VARCHAR(255) NULL,
+ADD COLUMN IF NOT EXISTS picture VARCHAR(255) NULL,
+ADD COLUMN IF NOT EXISTS auth_provider VARCHAR(50) DEFAULT 'local',
+ALTER COLUMN username DROP NOT NULL,
+ALTER COLUMN password DROP NOT NULL; 

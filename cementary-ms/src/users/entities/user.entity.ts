@@ -18,7 +18,7 @@ export class User {
   tenant_id: number;
 
   @ApiProperty({ description: 'The username for login' })
-  @Column({ length: 100, unique: true })
+  @Column({ length: 100, unique: true, nullable: true })
   username: string;
 
   @ApiProperty({ description: 'The email address of the user' })
@@ -27,7 +27,7 @@ export class User {
 
   @ApiHideProperty()
   @Exclude()
-  @Column()
+  @Column({ nullable: true })
   password: string;
 
   @ApiProperty({ description: 'The first name of the user' })
@@ -45,6 +45,18 @@ export class User {
   @ApiProperty({ description: 'Whether the user is active' })
   @Column({ default: true })
   is_active: boolean;
+
+  @ApiProperty({ description: 'The Google ID of the user' })
+  @Column({ nullable: true })
+  google_id: string;
+
+  @ApiProperty({ description: 'The profile picture URL' })
+  @Column({ nullable: true })
+  picture: string;
+
+  @ApiProperty({ description: 'The authentication provider (local, google, etc.)' })
+  @Column({ default: 'local' })
+  auth_provider: string;
 
   @ApiProperty({ description: 'The date when the user was created' })
   @CreateDateColumn({ type: 'timestamp with time zone' })

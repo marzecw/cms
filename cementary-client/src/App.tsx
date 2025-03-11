@@ -5,6 +5,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './pages/Login';
+import GoogleCallback from './pages/GoogleCallback';
 import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
 import Tenants from './pages/Tenants';
@@ -171,6 +172,9 @@ function App() {
         <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
+            {/* Temporarily disabled Google authentication
+            <Route path="/auth/google/callback" element={<GoogleCallback />} />
+            */}
             <Route element={<ProtectedRoute />}>
               <Route element={<Layout />}>
                 <Route path="/" element={<Dashboard />} />

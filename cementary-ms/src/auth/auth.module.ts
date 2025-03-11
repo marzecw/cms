@@ -5,6 +5,8 @@ import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
+// Temporarily disabled Google authentication
+// import { GoogleStrategy } from './strategies/google.strategy';
 import { PassportModule } from '@nestjs/passport';
 
 @Module({
@@ -21,7 +23,7 @@ import { PassportModule } from '@nestjs/passport';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy], // Temporarily removed GoogleStrategy
   exports: [AuthService],
 })
 export class AuthModule {}

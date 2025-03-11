@@ -6,6 +6,14 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 
+interface GoogleUserDto {
+  email: string;
+  firstName: string;
+  lastName: string;
+  picture: string;
+  googleId: string;
+}
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -33,6 +41,7 @@ export class UsersService {
     const user = this.usersRepository.create({
       ...createUserDto,
       password: hashedPassword,
+      auth_provider: 'local',
     });
 
     return this.usersRepository.save(user);
@@ -56,6 +65,45 @@ export class UsersService {
 
   async findByUsername(username: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { username } });
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { email } });
+  }
+
+  async findByGoogleId(googleId: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { google_id: googleId } });
+  }
+
+  async createGoogleUser(googleUserDto: GoogleUserDto): Promise<User> {
+    // Check if email already exists
+    const existingUser = await this.findByEmail(googleUserDto.email);
+    
+    if (existingUser) {
+      // If user exists but doesn't have Google ID, update it
+      if (!existingUser.google_id) {
+        existingUser.google_id = googleUserDto.googleId;
+        existingUser.auth_provider = 'google';
+        existingUser.picture = googleUserDto.picture;
+        return this.usersRepository.save(existingUser);
+      }
+      return existingUser;
+    }
+    
+    // Create new user from Google data
+    const user = this.usersRepository.create({
+      email: googleUserDto.email,
+      first_name: googleUserDto.firstName,
+      last_name: googleUserDto.lastName,
+      picture: googleUserDto.picture,
+      google_id: googleUserDto.googleId,
+      auth_provider: 'google',
+      is_active: true,
+      role: 'user',
+      tenant_id: 1, // Default tenant ID - adjust as needed
+    });
+    
+    return this.usersRepository.save(user);
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {

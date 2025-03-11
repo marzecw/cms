@@ -13,6 +13,7 @@ export interface User {
   lastName: string;
   role: string;
   tenantId: number;
+  picture?: string;
 }
 
 export interface AuthResponse {
@@ -79,6 +80,10 @@ const AuthService = {
 
   isAuthenticated: (): boolean => {
     return !!localStorage.getItem('token');
+  },
+
+  setToken: (token: string): void => {
+    localStorage.setItem('token', token);
   },
 };
 
