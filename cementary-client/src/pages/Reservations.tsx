@@ -25,6 +25,7 @@ interface Column {
   minWidth?: number;
   align?: 'right' | 'left' | 'center';
   format?: (value: any, row?: any) => React.ReactNode;
+  sortable?: boolean;
 }
 
 const Reservations: React.FC = () => {
@@ -115,17 +116,18 @@ const Reservations: React.FC = () => {
   ]);
 
   const columns: Column[] = [
-    { id: 'id', label: 'ID', minWidth: 50 },
-    { id: 'reservationNumber', label: 'Reservation #', minWidth: 150 },
-    { id: 'customerName', label: 'Customer', minWidth: 180 },
-    { id: 'spaceNumber', label: 'Space', minWidth: 120 },
-    { id: 'gardenName', label: 'Garden', minWidth: 150 },
-    { id: 'reservationDate', label: 'Reserved On', minWidth: 120 },
-    { id: 'expiryDate', label: 'Expires On', minWidth: 120 },
+    { id: 'id', label: 'ID', minWidth: 50, sortable: true },
+    { id: 'reservationNumber', label: 'Reservation #', minWidth: 150, sortable: true },
+    { id: 'customerName', label: 'Customer', minWidth: 180, sortable: true },
+    { id: 'spaceNumber', label: 'Space', minWidth: 120, sortable: true },
+    { id: 'gardenName', label: 'Garden', minWidth: 150, sortable: true },
+    { id: 'reservationDate', label: 'Reserved On', minWidth: 120, sortable: true },
+    { id: 'expiryDate', label: 'Expires On', minWidth: 120, sortable: true },
     { 
       id: 'status', 
       label: 'Status', 
       minWidth: 120,
+      sortable: true,
       format: (value: string) => {
         let color;
         let label = value.charAt(0).toUpperCase() + value.slice(1);
@@ -165,12 +167,14 @@ const Reservations: React.FC = () => {
       label: 'Amount ($)', 
       minWidth: 120,
       align: 'right',
+      sortable: true,
       format: (value: number) => value.toLocaleString('en-US'),
     },
     { 
       id: 'paymentStatus', 
       label: 'Payment', 
       minWidth: 120,
+      sortable: true,
       format: (value: string) => {
         let color;
         let label = value.charAt(0).toUpperCase() + value.slice(1);

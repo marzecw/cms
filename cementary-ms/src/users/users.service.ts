@@ -76,21 +76,29 @@ export class UsersService {
   }
 
   async createGoogleUser(googleUserDto: GoogleUserDto): Promise<User> {
+    console.log('Creating Google user:', googleUserDto);
+    
     // Check if email already exists
     const existingUser = await this.findByEmail(googleUserDto.email);
+    console.log('Existing user found by email:', existingUser);
     
     if (existingUser) {
       // If user exists but doesn't have Google ID, update it
       if (!existingUser.google_id) {
+        console.log('Updating existing user with Google ID');
         existingUser.google_id = googleUserDto.googleId;
         existingUser.auth_provider = 'google';
         existingUser.picture = googleUserDto.picture;
-        return this.usersRepository.save(existingUser);
+        const updatedUser = await this.usersRepository.save(existingUser);
+        console.log('User updated with Google ID:', updatedUser);
+        return updatedUser;
       }
+      console.log('Returning existing user with Google ID');
       return existingUser;
     }
     
     // Create new user from Google data
+    console.log('Creating new user from Google data');
     const user = this.usersRepository.create({
       email: googleUserDto.email,
       first_name: googleUserDto.firstName,
@@ -103,7 +111,9 @@ export class UsersService {
       tenant_id: 1, // Default tenant ID - adjust as needed
     });
     
-    return this.usersRepository.save(user);
+    const savedUser = await this.usersRepository.save(user);
+    console.log('New user created from Google data:', savedUser);
+    return savedUser;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {

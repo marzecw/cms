@@ -20,6 +20,7 @@ import { IntermentsModule } from './interments/interments.module';
 import { BillingModule } from './billing/billing.module';
 import { PaymentsModule } from './payments/payments.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { MaintenanceModule } from './maintenance/maintenance.module';
     BillingModule,
     PaymentsModule,
     MaintenanceModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

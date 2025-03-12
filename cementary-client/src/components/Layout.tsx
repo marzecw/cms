@@ -95,7 +95,7 @@ const Layout: React.FC = () => {
     { text: 'Gardens', icon: <GardenIcon />, path: '/gardens' },
     { text: 'Lots', icon: <LotIcon />, path: '/lots' },
     { text: 'Spaces', icon: <SpaceIcon />, path: '/spaces' },
-    { text: 'Levels', icon: <LevelIcon />, path: '/levels' },
+    { text: 'Space Levels', icon: <LevelIcon />, path: '/space-levels' },
   ];
 
   const menuItems: MenuItem[] = [

@@ -151,15 +151,16 @@ const Users: React.FC = () => {
   };
 
   const columns = [
-    { id: 'id', label: 'ID', minWidth: 50 },
-    { id: 'username', label: 'Username', minWidth: 120 },
-    { id: 'firstName', label: 'First Name', minWidth: 120 },
-    { id: 'lastName', label: 'Last Name', minWidth: 120 },
-    { id: 'email', label: 'Email', minWidth: 180 },
+    { id: 'id', label: 'ID', minWidth: 50, sortable: true },
+    { id: 'username', label: 'Username', minWidth: 120, sortable: true },
+    { id: 'firstName', label: 'First Name', minWidth: 120, sortable: true },
+    { id: 'lastName', label: 'Last Name', minWidth: 120, sortable: true },
+    { id: 'email', label: 'Email', minWidth: 180, sortable: true },
     { 
       id: 'role', 
       label: 'Role', 
       minWidth: 120,
+      sortable: true,
       format: (value: string) => {
         let color;
         switch (value) {
@@ -193,6 +194,7 @@ const Users: React.FC = () => {
       id: 'status', 
       label: 'Status', 
       minWidth: 120,
+      sortable: true,
       format: (value: string) => (
         <Chip 
           label={value.charAt(0).toUpperCase() + value.slice(1)} 
@@ -209,7 +211,7 @@ const Users: React.FC = () => {
         />
       )
     },
-    { id: 'createdAt', label: 'Created At', minWidth: 120 },
+    { id: 'createdAt', label: 'Created At', minWidth: 120, sortable: true },
   ];
 
   const handleAddUser = () => {

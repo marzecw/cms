@@ -14,7 +14,7 @@ import Gardens from './pages/Gardens';
 import Lots from './pages/Lots';
 import LotView from './pages/LotView';
 import Spaces from './pages/Spaces';
-import Levels from './pages/Levels';
+import SpaceLevelManagement from './pages/SpaceLevels';
 import Customers from './pages/Customers';
 import Reservations from './pages/Reservations';
 import Deceased from './pages/Deceased';
@@ -172,9 +172,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
-            {/* Temporarily disabled Google authentication
             <Route path="/auth/google/callback" element={<GoogleCallback />} />
-            */}
             <Route element={<ProtectedRoute />}>
               <Route element={<Layout />}>
                 <Route path="/" element={<Dashboard />} />
@@ -185,7 +183,7 @@ function App() {
                 <Route path="/lots" element={<Lots />} />
                 <Route path="/lots/:id" element={<LotView />} />
                 <Route path="/spaces" element={<Spaces />} />
-                <Route path="/levels" element={<Levels />} />
+                <Route path="/space-levels" element={<SpaceLevelManagement />} />
                 <Route path="/customers" element={<Customers />} />
                 <Route path="/reservations" element={<Reservations />} />
                 <Route path="/deceased" element={<Deceased />} />

@@ -36,11 +36,15 @@ export class AuthService {
   }
 
   async validateOrCreateGoogleUser(googleUser: any) {
+    console.log('Validating or creating Google user:', googleUser);
+    
     // Try to find user by email
     let user = await this.usersService.findByEmail(googleUser.email);
+    console.log('Existing user found by email:', user);
     
     // If user doesn't exist, create a new one
     if (!user) {
+      console.log('No existing user found, creating new user');
       user = await this.usersService.createGoogleUser({
         email: googleUser.email,
         firstName: googleUser.firstName,
@@ -48,17 +52,32 @@ export class AuthService {
         picture: googleUser.picture,
         googleId: googleUser.id,
       });
+      console.log('New user created:', user);
+    } else if (!user.google_id) {
+      // If user exists but doesn't have Google ID, update it
+      console.log('Updating existing user with Google info');
+      user.google_id = googleUser.id;
+      user.auth_provider = 'google';
+      user.picture = googleUser.picture;
+      user = await this.usersService.update(user.user_id, user);
+      console.log('User updated with Google info:', user);
     }
     
     return user;
   }
 
   async googleLogin(req) {
+    console.log('Google login called with request:', req.user);
+    
     if (!req.user) {
+      console.error('No user from Google');
       throw new UnauthorizedException('No user from Google');
     }
     
-    return this.generateJwtToken(req.user);
+    const token = this.generateJwtToken(req.user);
+    console.log('Generated token for Google user:', token);
+    
+    return token;
   }
 
   private generateJwtToken(user: any) {

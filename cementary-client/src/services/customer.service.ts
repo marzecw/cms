@@ -45,7 +45,11 @@ const CustomerService = {
   },
 
   updateCustomer: async (id: number, customer: Partial<Customer>): Promise<CustomerResponse> => {
-    const response = await api.patch<CustomerResponse>(`/customers/${id}`, customer);
+    // Create a copy of the customer object without the customer_id property
+    const { customer_id, ...customerData } = customer;
+    console.log('Updating customer with data (customer_id removed):', customerData);
+    
+    const response = await api.patch<CustomerResponse>(`/customers/${id}`, customerData);
     return response.data;
   },
 

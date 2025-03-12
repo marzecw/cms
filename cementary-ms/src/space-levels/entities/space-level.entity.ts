@@ -1,8 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Space } from '../../spaces/entities/space.entity';
-import { Reservation } from '../../reservations/entities/reservation.entity';
+import { ApiProperty, ApiHideProperty } from '@nestjs/swagger';
 import { Interment } from '../../interments/entities/interment.entity';
+import { Reservation } from '../../reservations/entities/reservation.entity';
+import { Type } from 'class-transformer';
 
 @Entity('space_levels')
 export class SpaceLevel {
@@ -10,33 +11,44 @@ export class SpaceLevel {
   @PrimaryGeneratedColumn()
   level_id: number;
 
-  @ApiProperty({ description: 'The space this level belongs to' })
-  @ManyToOne(() => Space, space => space.levels)
-  @JoinColumn({ name: 'space_id' })
-  space: Space;
+  @ApiProperty({ description: 'The name of the space level' })
+  @Column({ nullable: true })
+  name: string;
 
+  @ApiProperty({ description: 'The description of the space level' })
+  @Column({ nullable: true })
+  description: string;
+
+  @ApiProperty({ description: 'The price of the space level' })
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  price: number;
+
+  @ApiProperty({ description: 'The status of the space level' })
+  @Column({ default: 'available' })
+  status: string;
+
+  @ApiHideProperty()
+  @ManyToOne(() => Space, space => space.levels, { lazy: true })
+  @JoinColumn({ name: 'space_id' })
+  space: Promise<Space>;
+
+  @ApiProperty({ description: 'The ID of the space this level belongs to' })
   @Column()
   space_id: number;
 
-  @ApiProperty({ description: 'The level number' })
-  @Column()
-  level_number: number;
-
-  @ApiProperty({ description: 'The status of the level' })
-  @Column({ length: 50, default: 'vacant' })
-  status: string;
-
-  @ApiProperty({ description: 'The date when the level was created' })
-  @CreateDateColumn({ type: 'timestamp with time zone' })
+  @ApiProperty({ description: 'The date the space level was created' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
-  @ApiProperty({ description: 'The date when the level was last updated' })
-  @UpdateDateColumn({ type: 'timestamp with time zone' })
+  @ApiProperty({ description: 'The date the space level was last updated' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
   updated_at: Date;
 
-  @OneToMany(() => Reservation, reservation => reservation.level)
-  reservations: Reservation[];
-
+  @ApiHideProperty()
   @OneToMany(() => Interment, interment => interment.level)
   interments: Interment[];
+
+  @ApiHideProperty()
+  @OneToMany(() => Reservation, reservation => reservation.level)
+  reservations: Reservation[];
 } 

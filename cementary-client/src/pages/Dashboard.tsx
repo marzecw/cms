@@ -10,6 +10,7 @@ import {
   alpha,
   Avatar,
   Divider,
+  Alert,
 } from '@mui/material';
 import {
   PeopleOutlined,
@@ -24,19 +25,7 @@ import {
   ViewModule,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
-
-interface DashboardStats {
-  cemeteries: number;
-  gardens: number;
-  lots: number;
-  spaces: number;
-  customers: number;
-  reservations: number;
-  deceased: number;
-  interments: number;
-  invoices: number;
-  payments: number;
-}
+import DashboardService, { DashboardStats } from '../services/dashboard.service';
 
 interface StatCardProps {
   title: string;
@@ -96,29 +85,18 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // In a real application, you would have an API endpoint for dashboard stats
-        // For now, we'll simulate it with mock data
+        setLoading(true);
+        setError('');
         
-        // Simulate API call delay
-        setTimeout(() => {
-          // Mock data
-          setStats({
-            cemeteries: 3,
-            gardens: 12,
-            lots: 150,
-            spaces: 450,
-            customers: 320,
-            reservations: 180,
-            deceased: 250,
-            interments: 220,
-            invoices: 420,
-            payments: 380,
-          });
-          
-          setLoading(false);
-        }, 1000);
+        // Fetch real data from the API
+        const dashboardStats = await DashboardService.getStats();
+        console.log('Dashboard stats from API:', dashboardStats);
+        
+        setStats(dashboardStats);
+        setLoading(false);
       } catch (err: any) {
-        setError(err.message || 'Failed to load dashboard data');
+        console.error('Error fetching dashboard data:', err);
+        setError(err.response?.data?.message || 'Failed to load dashboard data');
         setLoading(false);
       }
     };
@@ -139,8 +117,32 @@ const Dashboard: React.FC = () => {
 
   if (error) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <Typography color="error" variant="h6">{error}</Typography>
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+        <Typography variant="h5" fontWeight="bold" gutterBottom>
+          Welcome back, {user?.firstName}!
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+          We're having trouble loading your dashboard data. Please try again later.
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          No dashboard data available
+        </Alert>
+        <Typography variant="h5" fontWeight="bold" gutterBottom>
+          Welcome back, {user?.firstName}!
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          We couldn't find any data for your dashboard. Please check back later.
+        </Typography>
       </Box>
     );
   }
@@ -160,7 +162,7 @@ const Dashboard: React.FC = () => {
         <Grid item xs={12} md={6} lg={3}>
           <StatCard 
             title="Cemeteries" 
-            value={stats?.cemeteries || 0} 
+            value={stats.cemeteries} 
             icon={<AccountBalance />} 
             color={theme.palette.primary.main} 
           />
@@ -168,7 +170,7 @@ const Dashboard: React.FC = () => {
         <Grid item xs={12} md={6} lg={3}>
           <StatCard 
             title="Gardens" 
-            value={stats?.gardens || 0} 
+            value={stats.gardens} 
             icon={<Spa />} 
             color={theme.palette.success.main} 
           />
@@ -176,7 +178,7 @@ const Dashboard: React.FC = () => {
         <Grid item xs={12} md={6} lg={3}>
           <StatCard 
             title="Lots" 
-            value={stats?.lots || 0} 
+            value={stats.lots} 
             icon={<GridOn />} 
             color={theme.palette.info.main} 
           />
@@ -184,7 +186,7 @@ const Dashboard: React.FC = () => {
         <Grid item xs={12} md={6} lg={3}>
           <StatCard 
             title="Spaces" 
-            value={stats?.spaces || 0} 
+            value={stats.spaces} 
             icon={<ViewModule />} 
             color={theme.palette.warning.main} 
           />
@@ -219,7 +221,7 @@ const Dashboard: React.FC = () => {
                     </Avatar>
                     <Typography variant="body2">Cemeteries</Typography>
                   </Box>
-                  <Typography variant="body1" fontWeight="medium">{stats?.cemeteries}</Typography>
+                  <Typography variant="body1" fontWeight="medium">{stats.cemeteries}</Typography>
                 </Box>
                 
                 <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -229,7 +231,7 @@ const Dashboard: React.FC = () => {
                     </Avatar>
                     <Typography variant="body2">Gardens</Typography>
                   </Box>
-                  <Typography variant="body1" fontWeight="medium">{stats?.gardens}</Typography>
+                  <Typography variant="body1" fontWeight="medium">{stats.gardens}</Typography>
                 </Box>
                 
                 <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -239,7 +241,7 @@ const Dashboard: React.FC = () => {
                     </Avatar>
                     <Typography variant="body2">Lots</Typography>
                   </Box>
-                  <Typography variant="body1" fontWeight="medium">{stats?.lots}</Typography>
+                  <Typography variant="body1" fontWeight="medium">{stats.lots}</Typography>
                 </Box>
                 
                 <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -249,7 +251,7 @@ const Dashboard: React.FC = () => {
                     </Avatar>
                     <Typography variant="body2">Spaces</Typography>
                   </Box>
-                  <Typography variant="body1" fontWeight="medium">{stats?.spaces}</Typography>
+                  <Typography variant="body1" fontWeight="medium">{stats.spaces}</Typography>
                 </Box>
               </Box>
             </CardContent>
@@ -279,7 +281,7 @@ const Dashboard: React.FC = () => {
                     </Avatar>
                     <Typography variant="body2">Customers</Typography>
                   </Box>
-                  <Typography variant="body1" fontWeight="medium">{stats?.customers}</Typography>
+                  <Typography variant="body1" fontWeight="medium">{stats.customers}</Typography>
                 </Box>
                 
                 <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -289,7 +291,7 @@ const Dashboard: React.FC = () => {
                     </Avatar>
                     <Typography variant="body2">Reservations</Typography>
                   </Box>
-                  <Typography variant="body1" fontWeight="medium">{stats?.reservations}</Typography>
+                  <Typography variant="body1" fontWeight="medium">{stats.reservations}</Typography>
                 </Box>
                 
                 <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -299,7 +301,7 @@ const Dashboard: React.FC = () => {
                     </Avatar>
                     <Typography variant="body2">Deceased</Typography>
                   </Box>
-                  <Typography variant="body1" fontWeight="medium">{stats?.deceased}</Typography>
+                  <Typography variant="body1" fontWeight="medium">{stats.deceased}</Typography>
                 </Box>
                 
                 <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -309,7 +311,7 @@ const Dashboard: React.FC = () => {
                     </Avatar>
                     <Typography variant="body2">Interments</Typography>
                   </Box>
-                  <Typography variant="body1" fontWeight="medium">{stats?.interments}</Typography>
+                  <Typography variant="body1" fontWeight="medium">{stats.interments}</Typography>
                 </Box>
               </Box>
             </CardContent>
@@ -339,7 +341,7 @@ const Dashboard: React.FC = () => {
                     </Avatar>
                     <Typography variant="body2">Invoices</Typography>
                   </Box>
-                  <Typography variant="body1" fontWeight="medium">{stats?.invoices}</Typography>
+                  <Typography variant="body1" fontWeight="medium">{stats.invoices}</Typography>
                 </Box>
                 
                 <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -349,7 +351,7 @@ const Dashboard: React.FC = () => {
                     </Avatar>
                     <Typography variant="body2">Payments</Typography>
                   </Box>
-                  <Typography variant="body1" fontWeight="medium">{stats?.payments}</Typography>
+                  <Typography variant="body1" fontWeight="medium">{stats.payments}</Typography>
                 </Box>
               </Box>
               
@@ -367,15 +369,21 @@ const Dashboard: React.FC = () => {
                 </Typography>
                 <Box display="flex" justifyContent="space-between" mt={1}>
                   <Typography variant="body2" color="text.secondary">Total Invoiced:</Typography>
-                  <Typography variant="body2" fontWeight="bold">$125,450.00</Typography>
+                  <Typography variant="body2" fontWeight="bold">
+                    ${stats.financialSummary?.totalInvoiced.toLocaleString() || '0.00'}
+                  </Typography>
                 </Box>
                 <Box display="flex" justifyContent="space-between" mt={1}>
                   <Typography variant="body2" color="text.secondary">Total Received:</Typography>
-                  <Typography variant="body2" fontWeight="bold">$98,320.00</Typography>
+                  <Typography variant="body2" fontWeight="bold">
+                    ${stats.financialSummary?.totalReceived.toLocaleString() || '0.00'}
+                  </Typography>
                 </Box>
                 <Box display="flex" justifyContent="space-between" mt={1}>
                   <Typography variant="body2" color="text.secondary">Outstanding:</Typography>
-                  <Typography variant="body2" fontWeight="bold" color="error.main">$27,130.00</Typography>
+                  <Typography variant="body2" fontWeight="bold" color="error.main">
+                    ${stats.financialSummary?.outstanding.toLocaleString() || '0.00'}
+                  </Typography>
                 </Box>
               </Box>
             </CardContent>

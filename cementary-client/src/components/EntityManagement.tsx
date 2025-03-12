@@ -19,6 +19,8 @@ import {
   InputBase,
   Card,
   CardContent,
+  Alert,
+  TableSortLabel,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -36,6 +38,7 @@ interface Column {
   minWidth?: number;
   align?: 'right' | 'left' | 'center';
   format?: (value: any, row: any) => string | React.ReactNode;
+  sortable?: boolean;
 }
 
 interface EntityManagementProps {
@@ -47,7 +50,11 @@ interface EntityManagementProps {
   onEdit?: (id: number) => void;
   onDelete?: (id: number) => void;
   onView?: (id: number) => void;
+  error?: string | null;
 }
+
+// Type for sort direction
+type Order = 'asc' | 'desc';
 
 const EntityManagement: React.FC<EntityManagementProps> = ({
   title,
@@ -58,11 +65,14 @@ const EntityManagement: React.FC<EntityManagementProps> = ({
   onEdit,
   onDelete,
   onView,
+  error,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
+  const [orderBy, setOrderBy] = useState<string>('');
+  const [order, setOrder] = useState<Order>('asc');
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -73,11 +83,53 @@ const EntityManagement: React.FC<EntityManagementProps> = ({
     setPage(0);
   };
 
+  const handleRequestSort = (property: string) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+
+  // Filter data based on search term
   const filteredData = data.filter(row => {
     return Object.values(row).some(value => 
       value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
+
+  // Sort data based on orderBy and order
+  const sortedData = React.useMemo(() => {
+    if (!orderBy) {
+      return filteredData;
+    }
+
+    return [...filteredData].sort((a, b) => {
+      const aValue = a[orderBy];
+      const bValue = b[orderBy];
+
+      // Handle nested objects (like cemetery.cemetery_name)
+      const getNestedValue = (obj: any, path: string) => {
+        const keys = path.split('.');
+        return keys.reduce((o, key) => (o && o[key] !== undefined ? o[key] : null), obj);
+      };
+
+      let aCompare = typeof aValue === 'object' && aValue !== null ? getNestedValue(a, orderBy) : aValue;
+      let bCompare = typeof bValue === 'object' && bValue !== null ? getNestedValue(b, orderBy) : bValue;
+
+      // Convert to strings for comparison if they're not numbers
+      if (typeof aCompare !== 'number' && typeof bCompare !== 'number') {
+        aCompare = aCompare ? aCompare.toString().toLowerCase() : '';
+        bCompare = bCompare ? bCompare.toString().toLowerCase() : '';
+      }
+
+      if (bCompare < aCompare) {
+        return order === 'asc' ? 1 : -1;
+      }
+      if (bCompare > aCompare) {
+        return order === 'asc' ? -1 : 1;
+      }
+      return 0;
+    });
+  }, [filteredData, order, orderBy]);
 
   return (
     <Box>
@@ -88,6 +140,12 @@ const EntityManagement: React.FC<EntityManagementProps> = ({
           </Typography>
         )}
       </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
       <Card elevation={0} sx={{ mb: 3, borderRadius: 2, border: '1px solid #e0e0e0' }}>
         <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2 }}>
@@ -172,7 +230,17 @@ const EntityManagement: React.FC<EntityManagementProps> = ({
                       borderBottom: '2px solid #e0e0e0',
                     }}
                   >
-                    {column.label}
+                    {column.sortable !== false ? (
+                      <TableSortLabel
+                        active={orderBy === column.id}
+                        direction={orderBy === column.id ? order : 'asc'}
+                        onClick={() => handleRequestSort(column.id)}
+                      >
+                        {column.label}
+                      </TableSortLabel>
+                    ) : (
+                      column.label
+                    )}
                   </TableCell>
                 ))}
                 <TableCell 
@@ -190,7 +258,7 @@ const EntityManagement: React.FC<EntityManagementProps> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredData
+              {sortedData
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row) => {
                   return (
@@ -259,7 +327,7 @@ const EntityManagement: React.FC<EntityManagementProps> = ({
                     </TableRow>
                   );
                 })}
-              {filteredData.length === 0 && (
+              {sortedData.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 3 }}>
                     <Typography variant="body1" color="textSecondary">
@@ -274,7 +342,7 @@ const EntityManagement: React.FC<EntityManagementProps> = ({
         <TablePagination
           rowsPerPageOptions={[10, 25, 50, 100]}
           component="div"
-          count={filteredData.length}
+          count={sortedData.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

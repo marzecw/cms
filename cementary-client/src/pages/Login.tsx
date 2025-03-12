@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Container,
   Box,
@@ -14,8 +14,9 @@ import {
   Link,
   InputAdornment,
   IconButton,
+  Divider,
 } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { Visibility, VisibilityOff, Google as GoogleIcon } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 
 const Login: React.FC = () => {
@@ -26,6 +27,23 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { login, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check for error parameter in URL
+    const params = new URLSearchParams(location.search);
+    const errorParam = params.get('error');
+    if (errorParam === 'auth_failed') {
+      setError('Google authentication failed. Please try again or use email/password login.');
+    }
+    
+    // Check if user is already logged in
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    if (token && user) {
+      window.location.href = '/';
+    }
+  }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +57,7 @@ const Login: React.FC = () => {
     try {
       console.log('Attempting to login with:', username, password);
       await login({ username, password });
-      navigate('/');
+      window.location.href = '/';
     } catch (err: any) {
       console.error('Login error:', err);
       if (err.message === 'Invalid credentials') {
@@ -48,6 +66,11 @@ const Login: React.FC = () => {
         setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
       }
     }
+  };
+
+  const handleGoogleLogin = () => {
+    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+    window.location.href = `${apiUrl}/auth/google`;
   };
 
   const handleTogglePasswordVisibility = () => {
@@ -184,6 +207,40 @@ const Login: React.FC = () => {
           >
             {loading ? <CircularProgress size={24} /> : 'Log in'}
           </Button>
+          
+          <Divider sx={{ my: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              OR
+            </Typography>
+          </Divider>
+          
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<GoogleIcon />}
+            onClick={handleGoogleLogin}
+            sx={{
+              py: 1.5,
+              borderRadius: 1,
+              textTransform: 'none',
+              fontSize: '1rem',
+              borderColor: '#ddd',
+              color: '#333',
+              '&:hover': {
+                borderColor: '#aaa',
+                backgroundColor: '#f5f5f5',
+              },
+            }}
+            disabled={loading}
+          >
+            Continue with Google
+          </Button>
+          
+          <Alert severity="info" sx={{ mt: 3 }}>
+            <Typography variant="body2">
+              <strong>Note:</strong> After clicking "Continue with Google" and authorizing, you'll be automatically redirected to the dashboard.
+            </Typography>
+          </Alert>
           
           <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 3 }}>
             For testing, use: admin / admin123
